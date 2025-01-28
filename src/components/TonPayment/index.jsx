@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button, Modal, Card, Typography, Space } from "antd";
-import { WalletOutlined, LoadingOutlined } from "@ant-design/icons";
-import { TonConnectButton } from "@tonconnect/ui-react";
-import { useTonConnect } from "../../hooks/useTonConnect";
+import { WalletOutlined } from "@ant-design/icons";
 import "./styles.css";
 
 const { Text, Title } = Typography;
@@ -17,41 +15,52 @@ const TonPayment = ({ onSuccess }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { connected, wallet, sendTransaction } = useTonConnect();
+  const [isConnected, setIsConnected] = useState(false);
 
-  // Reset selected package when modal closes
-  useEffect(() => {
-    if (!isModalVisible) {
-      setSelectedPackage(null);
+  const connectWallet = async () => {
+    const tg = window.Telegram.WebApp;
+
+    try {
+      // Send connect request to the bot
+      tg.sendData(
+        JSON.stringify({
+          action: "connect_wallet",
+        })
+      );
+
+      // In a real implementation, you would wait for the bot's response
+      // For now, we'll simulate a successful connection
+      setIsConnected(true);
+    } catch (error) {
+      console.error("Failed to connect wallet:", error);
     }
-  }, [isModalVisible]);
+  };
 
   const handlePurchase = async (creditPackage, e) => {
-    // Prevent event from bubbling up to card click
     e.stopPropagation();
 
-    if (!connected || !wallet) {
+    if (!isConnected) {
       return;
     }
 
     setIsLoading(true);
+    const tg = window.Telegram.WebApp;
+
     try {
-      const transaction = {
-        validUntil: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes
-        messages: [
-          {
-            address: "YOUR_WALLET_ADDRESS", // Replace with your wallet address
-            amount: BigInt(creditPackage.price * 1000000000), // Convert to nanotons
+      // Send purchase request to the bot
+      tg.sendData(
+        JSON.stringify({
+          action: "purchase_credits",
+          package: {
+            credits: creditPackage.credits,
+            price: creditPackage.price,
           },
-        ],
-      };
+        })
+      );
 
-      const result = await sendTransaction(transaction);
-
-      if (result.success) {
-        onSuccess(creditPackage.credits);
-        setIsModalVisible(false);
-      }
+      // Handle success
+      onSuccess(creditPackage.credits);
+      setIsModalVisible(false);
     } catch (error) {
       console.error("Payment failed:", error);
     } finally {
@@ -78,11 +87,21 @@ const TonPayment = ({ onSuccess }) => {
         className="ton-payment-modal"
         maskClosable={false}
       >
-        <div className="ton-connect-container">
-          <TonConnectButton />
-        </div>
-
-        {connected ? (
+        {!isConnected ? (
+          <div className="connect-prompt">
+            <Text className="connect-text">
+              Please connect your TON wallet to purchase credits
+            </Text>
+            <Button
+              type="primary"
+              size="large"
+              onClick={connectWallet}
+              className="connect-wallet-button"
+            >
+              Connect Wallet
+            </Button>
+          </div>
+        ) : (
           <div className="packages-container">
             <Space direction="vertical" style={{ width: "100%" }}>
               {CREDIT_PACKAGES.map((pkg, index) => (
@@ -112,12 +131,6 @@ const TonPayment = ({ onSuccess }) => {
                 </Card>
               ))}
             </Space>
-          </div>
-        ) : (
-          <div className="connect-prompt">
-            <Text className="connect-text">
-              Please connect your TON wallet to purchase credits
-            </Text>
           </div>
         )}
       </Modal>
