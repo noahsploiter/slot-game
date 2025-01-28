@@ -21,6 +21,12 @@ const connector = new TonConnect({
 // Available wallets configuration
 const walletsList = [
   {
+    name: "Telegram Wallet",
+    imageUrl: "https://wallet.tg/images/logo-288.png",
+    universalUrl: "https://wallet.tg/",
+    deepLink: "https://t.me/wallet",
+  },
+  {
     name: "Tonkeeper",
     imageUrl: "https://tonkeeper.com/assets/tonconnect-icon.png",
     universalUrl: "tonkeeper://",
@@ -90,11 +96,20 @@ const TonPayment = ({ onSuccess }) => {
   const handleWalletSelection = (wallet) => {
     const tg = window.Telegram?.WebApp;
 
-    if (tg) {
-      // If in Telegram, open external link
-      tg.openLink(wallet.deepLink);
+    if (wallet.name === "Telegram Wallet") {
+      // Special handling for Telegram Wallet
+      if (tg) {
+        tg.openTelegramLink(wallet.deepLink);
+      } else {
+        window.open(wallet.deepLink, "_blank");
+      }
     } else {
-      connectWallet(wallet);
+      // Existing logic for other wallets
+      if (tg) {
+        tg.openLink(wallet.deepLink);
+      } else {
+        connectWallet(wallet);
+      }
     }
   };
 
