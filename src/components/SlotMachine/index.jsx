@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, Row, Col, Space, Typography, Avatar } from "antd";
 import {
   DollarOutlined,
@@ -16,6 +16,63 @@ const SYMBOLS = [
   { icon: <StarOutlined style={{ color: "#FF4D4F" }} />, value: 2 },
   { icon: <ThunderboltOutlined style={{ color: "#1890FF" }} />, value: 3 },
 ];
+
+const SlotReel = ({ spinning, finalSymbol, speed = 30 }) => {
+  const [symbols, setSymbols] = useState([...SYMBOLS, ...SYMBOLS, ...SYMBOLS]);
+  const [position, setPosition] = useState(0);
+  const requestRef = useRef();
+
+  useEffect(() => {
+    if (spinning) {
+      let currentPos = position;
+      const animate = () => {
+        currentPos += speed;
+        if (currentPos >= symbols.length * 40) {
+          currentPos = 0;
+        }
+        setPosition(currentPos);
+        requestRef.current = requestAnimationFrame(animate);
+      };
+      requestRef.current = requestAnimationFrame(animate);
+    } else {
+      // Smoothly transition to final position
+      const targetPosition = finalSymbol * 40;
+      const animate = () => {
+        setPosition((prev) => {
+          const newPos = prev + speed;
+          if (newPos >= targetPosition) {
+            cancelAnimationFrame(requestRef.current);
+            return targetPosition;
+          }
+          requestRef.current = requestAnimationFrame(animate);
+          return newPos;
+        });
+      };
+      requestRef.current = requestAnimationFrame(animate);
+    }
+
+    return () => {
+      cancelAnimationFrame(requestRef.current);
+    };
+  }, [spinning, finalSymbol, speed]);
+
+  return (
+    <div className="reel-container">
+      <div
+        className="reel-symbols"
+        style={{
+          transform: `translateY(${-position}px)`,
+        }}
+      >
+        {symbols.map((symbol, index) => (
+          <div key={index} className="reel-symbol">
+            {symbol.icon}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const SlotMachine = () => {
   const [slots, setSlots] = useState([0, 0, 0]);
@@ -56,26 +113,42 @@ const SlotMachine = () => {
     setScore((prev) => prev - 10); // Cost per spin
   };
 
+  const triggerVibration = () => {
+    // Access Telegram WebApp
+    const tg = window.Telegram.WebApp;
+    if (tg) {
+      // Trigger light impact vibration
+      tg.HapticFeedback.impactOccurred("light");
+    }
+  };
+
   const spin = () => {
-    if (score < 10) return; // Not enough credits
+    if (score < 10) return;
     setIsSpinning(true);
     setLastWin(0);
+    triggerVibration();
 
-    // Simulate spinning animation
-    const intervalId = setInterval(() => {
-      setSlots(slots.map(() => Math.floor(Math.random() * SYMBOLS.length)));
-    }, 100);
+    // Generate final results immediately but don't show them yet
+    const finalSlots = slots.map(() =>
+      Math.floor(Math.random() * SYMBOLS.length)
+    );
 
-    // Stop after 2 seconds
+    // Stop the reels one by one
     setTimeout(() => {
-      clearInterval(intervalId);
+      setSlots((prev) => [finalSlots[0], prev[1], prev[2]]);
+      triggerVibration();
+    }, 1000);
+
+    setTimeout(() => {
+      setSlots((prev) => [prev[0], finalSlots[1], prev[2]]);
+      triggerVibration();
+    }, 1500);
+
+    setTimeout(() => {
+      setSlots((prev) => [prev[0], prev[1], finalSlots[2]]);
       setIsSpinning(false);
-      // Generate final result
-      const finalSlots = slots.map(() =>
-        Math.floor(Math.random() * SYMBOLS.length)
-      );
-      setSlots(finalSlots);
       checkWin(finalSlots);
+      triggerVibration();
     }, 2000);
   };
 
@@ -111,16 +184,17 @@ const SlotMachine = () => {
       {/* Slot Machine Display */}
       <Row justify="center" className="slot-display">
         <Col span={24}>
-          <Space size="large" className="slot-symbols">
+          <div className="slot-symbols">
             {slots.map((symbolIndex, index) => (
-              <div
-                key={index}
-                className={`symbol-container ${isSpinning ? "spinning" : ""}`}
-              >
-                {SYMBOLS[symbolIndex].icon}
+              <div key={index} className="symbol-container">
+                <SlotReel
+                  spinning={isSpinning}
+                  finalSymbol={symbolIndex}
+                  speed={30 + index * 5} // Slightly different speeds for each reel
+                />
               </div>
             ))}
-          </Space>
+          </div>
         </Col>
       </Row>
 
