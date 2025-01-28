@@ -8,6 +8,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import "./styles.css";
+import TonPayment from "../TonPayment";
 
 const { Title, Text } = Typography;
 
@@ -152,6 +153,10 @@ const SlotMachine = () => {
     }, 2000);
   };
 
+  const handlePaymentSuccess = (credits) => {
+    setScore((prev) => prev + credits);
+  };
+
   return (
     <div className="slot-machine">
       {/* User Profile */}
@@ -197,6 +202,11 @@ const SlotMachine = () => {
           </div>
         </Col>
       </Row>
+
+      {/* Add TonPayment component */}
+      <div className="payment-container">
+        <TonPayment onSuccess={handlePaymentSuccess} />
+      </div>
 
       {/* Spin Button */}
       <Row justify="center">
