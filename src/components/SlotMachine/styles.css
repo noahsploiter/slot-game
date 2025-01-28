@@ -1,0 +1,121 @@
+.slot-machine {
+  width: 100%;
+  background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.score-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+}
+
+.score-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-icon {
+  font-size: 1.5rem;
+  color: #FFD700;
+}
+
+.score-item .ant-typography {
+  color: #ffffff;
+  font-size: 1.2rem;
+}
+
+.win-announcement {
+  animation: pulse 1s infinite;
+}
+
+.win-text {
+  color: #FFD700 !important;
+  font-size: 1.2rem !important;
+}
+
+.slot-display {
+  margin-bottom: 2rem;
+}
+
+.slot-symbols {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  gap: 1rem;
+}
+
+.symbol-container {
+  font-size: 2.5rem;
+  background: linear-gradient(145deg, #2a2a2a, #3a3a3a);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  min-width: 6rem;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.symbol-container:hover {
+  transform: translateY(-5px);
+}
+
+.symbol-container.spinning {
+  animation: shake 0.5s infinite;
+}
+
+.spin-button {
+  width: 100%;
+  height: 3rem;
+  font-size: 1.2rem;
+  background: linear-gradient(145deg, #1890FF, #096DD9);
+  border: none;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.spin-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+.spin-button:disabled {
+  background: #666;
+  cursor: not-allowed;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+}
+
+.username {
+  color: #ffffff !important;
+  font-size: 1.2rem !important;
+} 
