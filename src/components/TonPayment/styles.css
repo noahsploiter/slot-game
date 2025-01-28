@@ -9,7 +9,11 @@
     border-bottom: none;
   }
 
-  .ant-modal-title {
+  .modal-title {
+    color: #ffffff;
+  }
+
+  .ant-modal-close {
     color: #ffffff;
   }
 }
@@ -45,19 +49,38 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
 
-  .ant-typography {
-    color: #ffffff;
-    margin: 0;
-  }
+.package-title {
+  color: #ffffff !important;
+  margin: 0 !important;
+}
+
+.package-price {
+  color: #ffffff !important;
+  opacity: 0.8;
 }
 
 .connect-prompt {
   text-align: center;
   padding: 2rem;
-  color: #ffffff;
+}
+
+.connect-text {
+  color: #ffffff !important;
+  font-size: 1.1rem;
 }
 
 .deposit-button {
   margin-bottom: 1rem;
+}
+
+/* Override ant-design card styles */
+.ant-card-body {
+  padding: 1rem !important;
+}
+
+/* Make sure modal close button is visible */
+.ant-modal-close-x {
+  color: #ffffff !important;
 } 

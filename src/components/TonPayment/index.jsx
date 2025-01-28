@@ -19,7 +19,17 @@ const TonPayment = ({ onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { connected, wallet, sendTransaction } = useTonConnect();
 
-  const handlePurchase = async (creditPackage) => {
+  // Reset selected package when modal closes
+  useEffect(() => {
+    if (!isModalVisible) {
+      setSelectedPackage(null);
+    }
+  }, [isModalVisible]);
+
+  const handlePurchase = async (creditPackage, e) => {
+    // Prevent event from bubbling up to card click
+    e.stopPropagation();
+
     if (!connected || !wallet) {
       return;
     }
@@ -61,11 +71,12 @@ const TonPayment = ({ onSuccess }) => {
       </Button>
 
       <Modal
-        title="Purchase Credits"
+        title={<span className="modal-title">Purchase Credits</span>}
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
         className="ton-payment-modal"
+        maskClosable={false}
       >
         <div className="ton-connect-container">
           <TonConnectButton />
@@ -84,12 +95,14 @@ const TonPayment = ({ onSuccess }) => {
                 >
                   <div className="package-content">
                     <div>
-                      <Title level={4}>{pkg.credits} Credits</Title>
-                      <Text>{pkg.price} TON</Text>
+                      <Title level={4} className="package-title">
+                        {pkg.credits} Credits
+                      </Title>
+                      <Text className="package-price">{pkg.price} TON</Text>
                     </div>
                     <Button
                       type="primary"
-                      onClick={() => handlePurchase(pkg)}
+                      onClick={(e) => handlePurchase(pkg, e)}
                       loading={isLoading}
                       disabled={isLoading}
                     >
@@ -102,7 +115,9 @@ const TonPayment = ({ onSuccess }) => {
           </div>
         ) : (
           <div className="connect-prompt">
-            <Text>Please connect your TON wallet to purchase credits</Text>
+            <Text className="connect-text">
+              Please connect your TON wallet to purchase credits
+            </Text>
           </div>
         )}
       </Modal>
