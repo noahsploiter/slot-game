@@ -118,4 +118,33 @@
 .wallet-address {
   color: #ffffff !important;
   font-family: monospace;
+}
+
+.wallet-selection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.wallet-option {
+  width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.wallet-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
 } 

@@ -13,20 +13,35 @@ const CREDIT_PACKAGES = [
   { credits: 1000, price: 0.8 }, // 0.8 TON
 ];
 
-// Initialize TON Connect
+// Initialize TON Connect with wallets configuration
 const connector = new TonConnect({
   manifestUrl: "https://slot-game-bot.vercel.app/tonconnect-manifest.json",
-  buttonRootId: "ton-connect-button",
 });
+
+// Available wallets configuration
+const walletsList = [
+  {
+    name: "Tonkeeper",
+    imageUrl: "https://tonkeeper.com/assets/tonconnect-icon.png",
+    universalUrl: "tonkeeper://",
+    deepLink: "https://app.tonkeeper.com/ton-connect",
+  },
+  {
+    name: "MyTonWallet",
+    imageUrl: "https://mytonwallet.io/icon-256.png",
+    universalUrl: "mytonwallet://",
+    deepLink: "https://mytonwallet.io",
+  },
+];
 
 const TonPayment = ({ onSuccess }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [walletAddress, setWalletAddress] = useState(null);
+  const [showWalletSelection, setShowWalletSelection] = useState(false);
 
   useEffect(() => {
-    // Check if wallet is already connected
     const checkConnection = async () => {
       const walletInfo = await connector.getWalletInfo();
       if (walletInfo) {
@@ -36,22 +51,50 @@ const TonPayment = ({ onSuccess }) => {
 
     checkConnection();
 
-    // Subscribe to wallet events
     connector.onStatusChange((wallet) => {
       if (wallet) {
         setWalletAddress(wallet.account.address);
+        setShowWalletSelection(false);
       } else {
         setWalletAddress(null);
       }
     });
   }, []);
 
-  const connectWallet = async () => {
+  const connectWallet = async (wallet) => {
     try {
-      // This will open the wallet selection modal
-      await connector.connect();
+      const tg = window.Telegram?.WebApp;
+      const isTelegram = !!tg;
+
+      // Get connection source
+      const connectionSource = {
+        universalUrl: wallet.universalUrl,
+        bridgeUrl: "https://bridge.tonapi.io/bridge",
+      };
+
+      // Get universal link from connector
+      const universalLink = await connector.connect(connectionSource);
+
+      if (isTelegram) {
+        // If in Telegram, open in browser
+        tg.openLink(wallet.deepLink);
+      } else {
+        // If in regular browser, try universal link
+        window.location.href = universalLink;
+      }
     } catch (error) {
       console.error("Failed to connect wallet:", error);
+    }
+  };
+
+  const handleWalletSelection = (wallet) => {
+    const tg = window.Telegram?.WebApp;
+
+    if (tg) {
+      // If in Telegram, open external link
+      tg.openLink(wallet.deepLink);
+    } else {
+      connectWallet(wallet);
     }
   };
 
@@ -108,24 +151,51 @@ const TonPayment = ({ onSuccess }) => {
       <Modal
         title={<span className="modal-title">Purchase Credits</span>}
         open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={() => {
+          setIsModalVisible(false);
+          setShowWalletSelection(false);
+        }}
         footer={null}
         className="ton-payment-modal"
         maskClosable={false}
       >
         {!walletAddress ? (
           <div className="connect-prompt">
-            <Text className="connect-text">
-              Please connect your TON wallet to purchase credits
-            </Text>
-            <Button
-              type="primary"
-              size="large"
-              onClick={connectWallet}
-              className="connect-wallet-button"
-            >
-              Connect Wallet
-            </Button>
+            {!showWalletSelection ? (
+              <>
+                <Text className="connect-text">
+                  Please connect your TON wallet to purchase credits
+                </Text>
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={() => setShowWalletSelection(true)}
+                  className="connect-wallet-button"
+                >
+                  Connect Wallet
+                </Button>
+              </>
+            ) : (
+              <div className="wallet-selection">
+                <Text className="connect-text">Select your wallet</Text>
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  {walletsList.map((wallet, index) => (
+                    <Button
+                      key={index}
+                      className="wallet-option"
+                      onClick={() => handleWalletSelection(wallet)}
+                    >
+                      <img
+                        src={wallet.imageUrl}
+                        alt={wallet.name}
+                        className="wallet-icon"
+                      />
+                      <span>{wallet.name}</span>
+                    </Button>
+                  ))}
+                </Space>
+              </div>
+            )}
           </div>
         ) : (
           <div className="packages-container">
